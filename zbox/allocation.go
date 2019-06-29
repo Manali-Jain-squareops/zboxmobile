@@ -46,6 +46,30 @@ func (a *Allocation) ListDirFromAuthTicket(authTicket string, lookupHash string)
 	return string(retBytes), nil
 }
 
+func (a *Allocation) GetFileMeta(path string) (string, error) {
+	fileMetaData, err := a.sdkAllocation.GetFileMeta(path)
+	if err != nil {
+		return "", err
+	}
+	retBytes, err := json.Marshal(fileMetaData)
+	if err != nil {
+		return "", err
+	}
+	return string(retBytes), nil
+}
+
+func (a *Allocation) GetFileMetaFromAuthTicket(authTicket string, lookupHash string) (string, error) {
+	fileMetaData, err := a.sdkAllocation.GetFileMetaFromAuthTicket(authTicket, lookupHash)
+	if err != nil {
+		return "", err
+	}
+	retBytes, err := json.Marshal(fileMetaData)
+	if err != nil {
+		return "", err
+	}
+	return string(retBytes), nil
+}
+
 func (a *Allocation) DownloadFile(remotePath, localPath string, statusCb StatusCallback) error {
 	return a.sdkAllocation.DownloadFile(localPath, remotePath, statusCb)
 }
