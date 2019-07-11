@@ -126,3 +126,7 @@ func (a *Allocation) GetFileStats(path string) (string, error) {
 	}
 	return string(retBytes), nil
 }
+
+func (a *Allocation) CancelDownload(remotepath string) error {
+	return a.sdkAllocation.CancelDownload(remotepath)
+}
