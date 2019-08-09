@@ -90,6 +90,10 @@ func (a *Allocation) DeleteFile(remotePath string) error {
 	return a.sdkAllocation.DeleteFile(remotePath)
 }
 
+func (a *Allocation) RenameObject(remotePath string, destName string) error {
+	return a.sdkAllocation.RenameObject(remotePath, destName)
+}
+
 func (a *Allocation) GetStats() (string, error) {
 	stats := a.sdkAllocation.GetStats()
 	retBytes, err := json.Marshal(stats)
