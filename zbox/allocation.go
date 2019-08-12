@@ -2,6 +2,7 @@ package zbox
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/0chain/gosdk/zboxcore/blockchain"
 	"github.com/0chain/gosdk/zboxcore/sdk"
@@ -133,4 +134,21 @@ func (a *Allocation) GetFileStats(path string) (string, error) {
 
 func (a *Allocation) CancelDownload(remotepath string) error {
 	return a.sdkAllocation.CancelDownload(remotepath)
+}
+
+func (a *Allocation) GetAllocationDiff(lastKnownAllocationRoot string, localRootPath string, localFileFilters string) (string, error) {
+	var filterArray []string
+	err := json.Unmarshal([]byte(localFileFilters), &filterArray)
+	if err != nil {
+		return "", fmt.Errorf("invalid filter JSON. %v", err)
+	}
+	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastKnownAllocationRoot, localRootPath, filterArray)
+	if err != nil {
+		return "", fmt.Errorf("get allocation diff in sdk failed. %v", err)
+	}
+	retBytes, err := json.Marshal(lFdiff)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert JSON. %v", err)
+	}
+	return string(retBytes), nil
 }
