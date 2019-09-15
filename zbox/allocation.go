@@ -140,13 +140,19 @@ func (a *Allocation) CancelDownload(remotepath string) error {
 	return a.sdkAllocation.CancelDownload(remotepath)
 }
 
-func (a *Allocation) GetAllocationDiff(lastKnownAllocationRoot string, localRootPath string, localFileFilters string) (string, error) {
+func (a *Allocation) GetAllocationDiff(lastSyncCachePath string, localRootPath string, localFileFilters string, remoteExcludePaths string) (string, error) {
 	var filterArray []string
 	err := json.Unmarshal([]byte(localFileFilters), &filterArray)
 	if err != nil {
-		return "", fmt.Errorf("invalid filter JSON. %v", err)
+		return "", fmt.Errorf("invalid local file filter JSON. %v", err)
 	}
-	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastKnownAllocationRoot, localRootPath, filterArray)
+	var exclPathArray []string
+	err = json.Unmarshal([]byte(remoteExcludePaths), &exclPathArray)
+	if err != nil {
+		return "", fmt.Errorf("invalid remote exclude path JSON. %v", err)
+	}
+
+	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastSyncCachePath, localRootPath, filterArray, exclPathArray)
 	if err != nil {
 		return "", fmt.Errorf("get allocation diff in sdk failed. %v", err)
 	}
@@ -155,4 +161,13 @@ func (a *Allocation) GetAllocationDiff(lastKnownAllocationRoot string, localRoot
 		return "", fmt.Errorf("failed to convert JSON. %v", err)
 	}
 	return string(retBytes), nil
+}
+
+func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths string) error {
+	var exclPathArray []string
+	err := json.Unmarshal([]byte(remoteExcludePaths), &exclPathArray)
+	if err != nil {
+		return fmt.Errorf("invalid remote exclude path JSON. %v", err)
+	}
+	return a.sdkAllocation.SaveRemoteSnapshot(pathToSave, exclPathArray)
 }
