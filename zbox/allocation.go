@@ -87,6 +87,30 @@ func (a *Allocation) UploadFileWithThumbnail(localPath, remotePath string, thumb
 	return a.sdkAllocation.UploadFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
 }
 
+func (a *Allocation) EncryptAndUploadFile(localPath, remotePath string, statusCb StatusCallback) error {
+	return a.sdkAllocation.EncryptAndUploadFile(localPath, remotePath, statusCb)
+}
+
+func (a *Allocation) EncryptAndUploadFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
+	return a.sdkAllocation.EncryptAndUploadFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
+}
+
+func (a *Allocation) UpdateFile(localPath, remotePath string, statusCb StatusCallback) error {
+	return a.sdkAllocation.UpdateFile(localPath, remotePath, statusCb)
+}
+
+func (a *Allocation) UpdateFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
+	return a.sdkAllocation.UpdateFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
+}
+
+func (a *Allocation) EncryptAndUpdateFile(localPath, remotePath string, statusCb StatusCallback) error {
+	return a.sdkAllocation.EncryptAndUpdateFile(localPath, remotePath, statusCb)
+}
+
+func (a *Allocation) EncryptAndUpdateFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
+	return a.sdkAllocation.EncryptAndUpdateFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
+}
+
 func (a *Allocation) DeleteFile(remotePath string) error {
 	return a.sdkAllocation.DeleteFile(remotePath)
 }
@@ -142,7 +166,7 @@ func (a *Allocation) GetAllocationDiff(lastKnownAllocationRoot string, localRoot
 	if err != nil {
 		return "", fmt.Errorf("invalid filter JSON. %v", err)
 	}
-	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastKnownAllocationRoot, localRootPath, filterArray)
+	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastKnownAllocationRoot, localRootPath, filterArray, []string{})
 	if err != nil {
 		return "", fmt.Errorf("get allocation diff in sdk failed. %v", err)
 	}
