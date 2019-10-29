@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	cloud.google.com/go v0.40.0 // indirect
-	github.com/0chain/gosdk v1.0.23
+	github.com/0chain/gosdk v1.0.24
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v3.3.13+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -15,6 +15,7 @@ require (
 	github.com/gosuri/uilive v0.0.3 // indirect
 	github.com/gosuri/uiprogress v0.0.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.9.2 // indirect
+	github.com/h2non/filetype v1.0.10 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
@@ -32,13 +33,6 @@ require (
 	github.com/ugorji/go v1.1.5-pre // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0 // indirect
-	golang.org/x/crypto v0.0.0-20190621222207-cc06ce4a13d4 // indirect
-	golang.org/x/exp v0.0.0-20190510132918-efd6b22b2522 // indirect
-	golang.org/x/image v0.0.0-20190622003408-7e034cad6442 // indirect
-	golang.org/x/mobile v0.0.0-20190607214518-6fa95d984e88 // indirect
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
-	golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0 // indirect
-	golang.org/x/tools v0.0.0-20190624150748-8ea4f8e3e5bf // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601 // indirect
 	google.golang.org/grpc v1.21.1 // indirect
