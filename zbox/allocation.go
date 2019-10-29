@@ -166,9 +166,6 @@ func (a *Allocation) GetAllocationDiff(lastSyncCachePath string, localRootPath s
 	if err != nil {
 		return "", fmt.Errorf("invalid local file filter JSON. %v", err)
 	}
-<<<<<<< HEAD
-	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastKnownAllocationRoot, localRootPath, filterArray, []string{})
-=======
 	var exclPathArray []string
 	err = json.Unmarshal([]byte(remoteExcludePaths), &exclPathArray)
 	if err != nil {
@@ -176,7 +173,6 @@ func (a *Allocation) GetAllocationDiff(lastSyncCachePath string, localRootPath s
 	}
 
 	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastSyncCachePath, localRootPath, filterArray, exclPathArray)
->>>>>>> e6a810da8bf49362d3b20869c4db8b1124e76ff8
 	if err != nil {
 		return "", fmt.Errorf("get allocation diff in sdk failed. %v", err)
 	}
