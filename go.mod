@@ -1,10 +1,10 @@
 module github.com/0chain/zboxmobile
 
-go 1.12
+go 1.13
 
 require (
 	cloud.google.com/go v0.40.0 // indirect
-	github.com/0chain/gosdk v1.0.24
+	github.com/0chain/gosdk v1.0.29
 	github.com/coreos/bbolt v1.3.3 // indirect
 	github.com/coreos/etcd v3.3.13+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -31,6 +31,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/ugorji/go v1.1.5-pre // indirect
+	go.dedis.ch/kyber/v3 v3.0.9 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.opencensus.io v0.22.0 // indirect
 	google.golang.org/appengine v1.6.1 // indirect
