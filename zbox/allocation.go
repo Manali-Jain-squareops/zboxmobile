@@ -191,3 +191,15 @@ func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths st
 	}
 	return a.sdkAllocation.SaveRemoteSnapshot(pathToSave, exclPathArray)
 }
+
+func (a *Allocation) CommitMetaTransaction(path, crudOperation string) (string, error) {
+	metaTxnData, err := a.sdkAllocation.CommitMetaTransaction(path, crudOperation)
+	if err != nil {
+		return "", fmt.Errorf("Failed to commit metaTxn. %v", err)
+	}
+	retBytes, err := json.Marshal(metaTxnData)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert JSON. %v", err)
+	}
+	return string(retBytes), nil
+}
