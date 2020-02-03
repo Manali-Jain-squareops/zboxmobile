@@ -132,6 +132,10 @@ func (a *Allocation) GetShareAuthToken(path string, filename string, referenceTy
 	return a.sdkAllocation.GetAuthTicketForShare(path, filename, referenceType, refereeClientID)
 }
 
+func (a *Allocation) GetAuthToken(path string, filename string, referenceType string, refereeClientID string, refereeEncryptionPublicKey string) (string, error) {
+	return a.sdkAllocation.GetAuthTicket(path, filename, referenceType, refereeClientID, refereeEncryptionPublicKey)
+}
+
 func (a *Allocation) DownloadFromAuthTicket(localPath string, authTicket string, remoteLookupHash string, remoteFilename string, status StatusCallback) error {
 	return a.sdkAllocation.DownloadFromAuthTicket(localPath, authTicket, remoteLookupHash, remoteFilename, status)
 }
@@ -190,4 +194,16 @@ func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths st
 		return fmt.Errorf("invalid remote exclude path JSON. %v", err)
 	}
 	return a.sdkAllocation.SaveRemoteSnapshot(pathToSave, exclPathArray)
+}
+
+func (a *Allocation) CommitMetaTransaction(path, crudOperation string) (string, error) {
+	metaTxnData, err := a.sdkAllocation.CommitMetaTransaction(path, crudOperation)
+	if err != nil {
+		return "", fmt.Errorf("Failed to commit metaTxn. %v", err)
+	}
+	retBytes, err := json.Marshal(metaTxnData)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert JSON. %v", err)
+	}
+	return string(retBytes), nil
 }
