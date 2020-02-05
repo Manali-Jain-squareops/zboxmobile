@@ -10,10 +10,11 @@ import (
 )
 
 type ChainConfig struct {
-	ChainID         string   `json:"chain_id,omitempty"`
-	Miners          []string `json:"miners"`
-	Sharders        []string `json:"sharders"`
-	SignatureScheme string   `json:"signaturescheme"`
+	ChainID           string   `json:"chain_id,omitempty"`
+	Miners            []string `json:"miners"`
+	Sharders          []string `json:"sharders"`
+	PreferredBlobbers []string `json:"preferred_blobbers"`
+	SignatureScheme   string   `json:"signaturescheme"`
 }
 
 type StorageSDK struct {
@@ -38,7 +39,7 @@ func InitStorageSDK(clientjson string, configjson string) (*StorageSDK, error) {
 		Logger.Error(err)
 		return nil, err
 	}
-	err = sdk.InitStorageSDK(clientjson, configObj.Miners, configObj.Sharders, configObj.ChainID, configObj.SignatureScheme)
+	err = sdk.InitStorageSDK(clientjson, configObj.Miners, configObj.Sharders, configObj.ChainID, configObj.SignatureScheme, configObj.PreferredBlobbers)
 	if err != nil {
 		Logger.Error(err)
 		return nil, err
