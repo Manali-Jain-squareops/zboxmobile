@@ -196,8 +196,8 @@ func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths st
 	return a.sdkAllocation.SaveRemoteSnapshot(pathToSave, exclPathArray)
 }
 
-func (a *Allocation) CommitMetaTransaction(path, crudOperation string) (string, error) {
-	metaTxnData, err := a.sdkAllocation.CommitMetaTransaction(path, crudOperation)
+func (a *Allocation) CommitMetaTransaction(path, crudOperation, authTicket, lookupHash string) (string, error) {
+	metaTxnData, err := a.sdkAllocation.CommitMetaTransaction(path, crudOperation, authTicket, lookupHash)
 	if err != nil {
 		return "", fmt.Errorf("Failed to commit metaTxn. %v", err)
 	}
