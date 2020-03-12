@@ -83,6 +83,10 @@ func (a *Allocation) UploadFile(localPath, remotePath string, statusCb StatusCal
 	return a.sdkAllocation.UploadFile(localPath, remotePath, statusCb)
 }
 
+func (a *Allocation) RepairFile(localPath, remotePath string, statusCb StatusCallback) error {
+	return a.sdkAllocation.RepairFile(localPath, remotePath, statusCb)
+}
+
 func (a *Allocation) UploadFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
 	return a.sdkAllocation.UploadFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
 }
