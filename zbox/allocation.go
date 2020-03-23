@@ -205,11 +205,12 @@ func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths st
 // fileMeta - Optional, Only when you do delete and have already fetched fileMeta before delete operation.
 func (a *Allocation) CommitMetaTransaction(path, crudOperation, authTicket, lookupHash, fileMeta string) (string, error) {
 	var fileMetaData *sdk.ConsolidatedFileMeta
-	err := json.Unmarshal([]byte(fileMeta), fileMetaData)
-	if err != nil {
-		return "", fmt.Errorf("failed to convert fileMeta. %v", err)
+	if len(fileMeta) > 0 {
+		err := json.Unmarshal([]byte(fileMeta), fileMetaData)
+		if err != nil {
+			return "", fmt.Errorf("failed to convert fileMeta. %v", err)
+		}
 	}
-
 	metaTxnData, err := a.sdkAllocation.CommitMetaTransaction(path, crudOperation, authTicket, lookupHash, fileMetaData)
 	if err != nil {
 		return "", fmt.Errorf("Failed to commit metaTxn. %v", err)
