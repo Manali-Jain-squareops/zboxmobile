@@ -2,6 +2,7 @@ package zbox
 
 import (
 	"encoding/json"
+	"math"
 
 	"github.com/0chain/gosdk/zboxcore/client"
 	. "github.com/0chain/gosdk/zboxcore/logger"
@@ -49,7 +50,9 @@ func InitStorageSDK(clientjson string, configjson string) (*StorageSDK, error) {
 }
 
 func (s *StorageSDK) CreateAllocation(datashards int, parityshards int, size int64, expiration int64) (*Allocation, error) {
-	sdkAllocationID, err := sdk.CreateAllocation(datashards, parityshards, size, expiration)
+	readPrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	writePrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	sdkAllocationID, err := sdk.CreateAllocation(datashards, parityshards, size, expiration, readPrice, writePrice, 0)
 	if err != nil {
 		return nil, err
 	}
