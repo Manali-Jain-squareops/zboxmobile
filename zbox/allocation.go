@@ -203,21 +203,13 @@ func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths st
 // authTicket - Optional, Only when you do download using authTicket and lookUpHash.
 // lookupHash - Same as above.
 // fileMeta - Optional, Only when you do delete and have already fetched fileMeta before delete operation.
-func (a *Allocation) CommitMetaTransaction(path, crudOperation, authTicket, lookupHash, fileMeta string) (string, error) {
+func (a *Allocation) CommitMetaTransaction(path, crudOperation, authTicket, lookupHash, fileMeta string, statusCb StatusCallback) error {
 	var fileMetaData *sdk.ConsolidatedFileMeta
 	if len(fileMeta) > 0 {
 		err := json.Unmarshal([]byte(fileMeta), fileMetaData)
 		if err != nil {
-			return "", fmt.Errorf("failed to convert fileMeta. %v", err)
+			return fmt.Errorf("failed to convert fileMeta. %v", err)
 		}
 	}
-	metaTxnData, err := a.sdkAllocation.CommitMetaTransaction(path, crudOperation, authTicket, lookupHash, fileMetaData)
-	if err != nil {
-		return "", fmt.Errorf("Failed to commit metaTxn. %v", err)
-	}
-	retBytes, err := json.Marshal(metaTxnData)
-	if err != nil {
-		return "", fmt.Errorf("failed to convert JSON. %v", err)
-	}
-	return string(retBytes), nil
+	return a.sdkAllocation.CommitMetaTransaction(path, crudOperation, authTicket, lookupHash, fileMetaData, statusCb)
 }
