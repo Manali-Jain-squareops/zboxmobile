@@ -108,3 +108,7 @@ func (s *StorageSDK) GetAllocationStats(allocationID string) (string, error) {
 	}
 	return string(retBytes), nil
 }
+
+func (s *StorageSDK) CreateReadPool() error {
+	return sdk.CreateReadPool()
+}
