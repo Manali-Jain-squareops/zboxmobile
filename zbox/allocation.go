@@ -168,6 +168,10 @@ func (a *Allocation) CancelDownload(remotepath string) error {
 	return a.sdkAllocation.CancelDownload(remotepath)
 }
 
+func (a *Allocation) CancelUpload(localpath string) error {
+	return a.sdkAllocation.CancelUpload(localpath)
+}
+
 func (a *Allocation) GetAllocationDiff(lastSyncCachePath string, localRootPath string, localFileFilters string, remoteExcludePaths string) (string, error) {
 	var filterArray []string
 	err := json.Unmarshal([]byte(localFileFilters), &filterArray)
