@@ -3,6 +3,7 @@ package zbox
 import (
 	"encoding/json"
 	"math"
+	"time"
 
 	"github.com/0chain/gosdk/zboxcore/client"
 	. "github.com/0chain/gosdk/zboxcore/logger"
@@ -26,6 +27,13 @@ type StorageSDK struct {
 func SetLogFile(logFile string, verbose bool) {
 	zcncore.SetLogFile(logFile, verbose)
 	sdk.SetLogFile(logFile, verbose)
+}
+
+// SetLogLevel set the log level.
+// lvl - 0 disabled; higher number (upto 4) more verbosity
+func SetLogLevel(logLevel int) {
+	zcncore.SetLogLevel(logLevel)
+	sdk.SetLogLevel(logLevel)
 }
 
 func InitStorageSDK(clientjson string, configjson string) (*StorageSDK, error) {
@@ -109,6 +117,35 @@ func (s *StorageSDK) GetAllocationStats(allocationID string) (string, error) {
 	return string(retBytes), nil
 }
 
+// READ POOL METHODS
+
+//CreateReadPool is to create read pool for the wallet
 func (s *StorageSDK) CreateReadPool() error {
 	return sdk.CreateReadPool()
+}
+
+//GetReadPoolInfo is to get information about the read pool for the client
+func (s *StorageSDK) GetReadPoolInfo(clientID string) (string, error) {
+	readPool, err := sdk.GetReadPoolInfo(clientID)
+	if err != nil {
+		return "", err
+	}
+
+	retBytes, err := json.Marshal(readPool)
+	if err != nil {
+		return "", err
+	}
+	return string(retBytes), nil
+}
+
+//ReadPoolLock is to lock tokens into the read pool
+func (s *StorageSDK) ReadPoolLock(durInSeconds, tokens, fee int64, allocID string) error {
+	var duration time.Duration
+	duration = time.Duration(durInSeconds) * time.Second
+	return sdk.ReadPoolLock(duration, allocID, "", tokens, fee)
+}
+
+//ReadPoolUnlock is to unlock tokens from read pool
+func (s *StorageSDK) ReadPoolUnlock(poolID string, fee int64) error {
+	return sdk.ReadPoolUnlock(poolID, fee)
 }
