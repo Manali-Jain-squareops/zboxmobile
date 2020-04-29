@@ -117,6 +117,14 @@ func (s *StorageSDK) GetAllocationStats(allocationID string) (string, error) {
 	return string(retBytes), nil
 }
 
+func (s *StorageSDK) FinalizeAllocation(allocationID string) (string, error) {
+	return sdk.FinalizeAllocation(allocationID)
+}
+
+func (s *StorageSDK) CancelAlloctioan(allocationID string) (string, error) {
+	return sdk.CancelAlloctioan(allocationID)
+}
+
 // READ POOL METHODS
 
 //CreateReadPool is to create read pool for the wallet
@@ -124,13 +132,16 @@ func (s *StorageSDK) CreateReadPool() error {
 	return sdk.CreateReadPool()
 }
 
-//GetReadPoolInfo is to get information about the read pool for the client
-func (s *StorageSDK) GetReadPoolInfo(clientID string) (string, error) {
-	readPool, err := sdk.GetReadPoolInfo(clientID)
+//GetReadPoolInfo is to get information about the read pool for the allocation
+func (s *StorageSDK) GetReadPoolInfo(allocID string) (string, error) {
+	readPool, err := sdk.GetReadPoolInfo("")
 	if err != nil {
 		return "", err
 	}
 
+	if len(allocID) > 0 {
+		readPool.AllocFilter(allocID)
+	}
 	retBytes, err := json.Marshal(readPool)
 	if err != nil {
 		return "", err
@@ -139,13 +150,43 @@ func (s *StorageSDK) GetReadPoolInfo(clientID string) (string, error) {
 }
 
 //ReadPoolLock is to lock tokens into the read pool
-func (s *StorageSDK) ReadPoolLock(durInSeconds, tokens, fee int64, allocID string) error {
+func (s *StorageSDK) ReadPoolLock(durInSeconds int64, tokens, fee float64, allocID, blobberID string) error {
 	var duration time.Duration
 	duration = time.Duration(durInSeconds) * time.Second
-	return sdk.ReadPoolLock(duration, allocID, "", tokens, fee)
+	return sdk.ReadPoolLock(duration, allocID, blobberID, zcncore.ConvertToValue(tokens), zcncore.ConvertToValue(fee))
 }
 
 //ReadPoolUnlock is to unlock tokens from read pool
-func (s *StorageSDK) ReadPoolUnlock(poolID string, fee int64) error {
-	return sdk.ReadPoolUnlock(poolID, fee)
+func (s *StorageSDK) ReadPoolUnlock(poolID string, fee float64) error {
+	return sdk.ReadPoolUnlock(poolID, zcncore.ConvertToValue(fee))
+}
+
+// WRITE POOL METHODS
+
+//GetWritePoolInfo is to get information about the write pool for the allocation
+func (s *StorageSDK) GetWritePoolInfo(allocID string) (string, error) {
+	writePool, err := sdk.GetWritePoolInfo("")
+	if err != nil {
+		return "", err
+	}
+	if len(allocID) > 0 {
+		writePool.AllocFilter(allocID)
+	}
+	retBytes, err := json.Marshal(writePool)
+	if err != nil {
+		return "", err
+	}
+	return string(retBytes), nil
+}
+
+//WritePoolLock is to lock tokens into the write pool
+func (s *StorageSDK) WritePoolLock(durInSeconds int64, tokens, fee float64, allocID, blobberID string) error {
+	var duration time.Duration
+	duration = time.Duration(durInSeconds) * time.Second
+	return sdk.WritePoolLock(duration, allocID, blobberID, zcncore.ConvertToValue(tokens), zcncore.ConvertToValue(fee))
+}
+
+//WritePoolUnlock is to unlock tokens from write pool
+func (s *StorageSDK) WritePoolUnlock(poolID string, fee float64) error {
+	return sdk.WritePoolUnlock(poolID, zcncore.ConvertToValue(fee))
 }
