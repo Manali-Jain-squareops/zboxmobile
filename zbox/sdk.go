@@ -57,10 +57,10 @@ func InitStorageSDK(clientjson string, configjson string) (*StorageSDK, error) {
 	return &StorageSDK{client: client.GetClient(), chainconfig: configObj}, nil
 }
 
-func (s *StorageSDK) CreateAllocation(datashards int, parityshards int, size int64, expiration int64) (*Allocation, error) {
+func (s *StorageSDK) CreateAllocation(datashards int, parityshards int, size, expiration, lock int64) (*Allocation, error) {
 	readPrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
 	writePrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
-	sdkAllocationID, err := sdk.CreateAllocation(datashards, parityshards, size, expiration, readPrice, writePrice, 0)
+	sdkAllocationID, err := sdk.CreateAllocation(datashards, parityshards, size, expiration, readPrice, writePrice, 1*time.Hour, lock)
 	if err != nil {
 		return nil, err
 	}
