@@ -217,3 +217,11 @@ func (a *Allocation) CommitMetaTransaction(path, crudOperation, authTicket, look
 	}
 	return a.sdkAllocation.CommitMetaTransaction(path, crudOperation, authTicket, lookupHash, fileMetaData, statusCb)
 }
+
+func (a *Allocation) StartRepair(localImagePath, localFilePath, pathToRepair string, statusCb StatusCallback) error {
+	return a.sdkAllocation.StartRepair(localImagePath, localFilePath, pathToRepair, statusCb)
+}
+
+func (a *Allocation) CancelRepair() {
+	a.sdkAllocation.CancelRepair()
+}
