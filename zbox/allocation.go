@@ -222,6 +222,6 @@ func (a *Allocation) StartRepair(localRootPath, pathToRepair string, statusCb St
 	return a.sdkAllocation.StartRepair(localRootPath, pathToRepair, statusCb)
 }
 
-func (a *Allocation) CancelRepair() {
-	a.sdkAllocation.CancelRepair()
+func (a *Allocation) CancelRepair() error {
+	return a.sdkAllocation.CancelRepair()
 }
