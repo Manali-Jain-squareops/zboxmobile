@@ -13,10 +13,9 @@ import (
 
 type ChainConfig struct {
 	ChainID           string   `json:"chain_id,omitempty"`
-	Miners            []string `json:"miners"`
-	Sharders          []string `json:"sharders"`
 	PreferredBlobbers []string `json:"preferred_blobbers"`
-	SignatureScheme   string   `json:"signaturescheme"`
+	BlockWorker       string   `json:"block_worker"`
+	SignatureScheme   string   `json:"signature_scheme"`
 }
 
 type StorageSDK struct {
@@ -43,12 +42,12 @@ func InitStorageSDK(clientjson string, configjson string) (*StorageSDK, error) {
 		Logger.Error(err)
 		return nil, err
 	}
-	err = zcncore.InitZCNSDK(configObj.Miners, configObj.Sharders, configObj.SignatureScheme)
+	err = zcncore.InitZCNSDK(configObj.BlockWorker, configObj.SignatureScheme)
 	if err != nil {
 		Logger.Error(err)
 		return nil, err
 	}
-	err = sdk.InitStorageSDK(clientjson, configObj.Miners, configObj.Sharders, configObj.ChainID, configObj.SignatureScheme, configObj.PreferredBlobbers)
+	err = sdk.InitStorageSDK(clientjson, configObj.BlockWorker, configObj.ChainID, configObj.SignatureScheme, configObj.PreferredBlobbers)
 	if err != nil {
 		Logger.Error(err)
 		return nil, err
