@@ -2,6 +2,7 @@ package zbox
 
 import (
 	"encoding/hex"
+	"encoding/json"
 
 	"github.com/0chain/gosdk/zboxcore/sdk"
 	"github.com/0chain/gosdk/zboxcore/zboxutil"
@@ -29,4 +30,26 @@ func Decrypt(key, text string) (string, error) {
 		return "", err
 	}
 	return string(response), nil
+}
+
+func GetNetwork() (string, error) {
+	networkDetails := sdk.GetNetwork()
+	networkDetailsBytes, err := json.Marshal(networkDetails)
+	if err != nil {
+		return "", err
+	}
+	return string(networkDetailsBytes), nil
+}
+
+func GetBlobbers() (string, error) {
+	blobbers, err := sdk.GetBlobbers()
+	if err != nil {
+		return "", err
+	}
+
+	blobbersBytes, err := json.Marshal(blobbers)
+	if err != nil {
+		return "", err
+	}
+	return string(blobbersBytes), nil
 }
