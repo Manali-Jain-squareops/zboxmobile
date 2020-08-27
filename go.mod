@@ -3,7 +3,7 @@ module github.com/0chain/zboxmobile
 go 1.13
 
 require (
-	github.com/0chain/gosdk v1.0.94
+	github.com/0chain/gosdk v1.0.96
 	github.com/h2non/filetype v1.0.10 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	go.dedis.ch/kyber/v3 v3.0.9 // indirect
