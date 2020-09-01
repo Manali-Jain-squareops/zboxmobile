@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
+	"github.com/0chain/gosdk/zboxcore/client"
 	"github.com/0chain/gosdk/zboxcore/sdk"
 	"github.com/0chain/gosdk/zboxcore/zboxutil"
 )
@@ -52,4 +53,12 @@ func GetBlobbers() (string, error) {
 		return "", err
 	}
 	return string(blobbersBytes), nil
+}
+
+func Sign(hash string) (string, error) {
+	return client.Sign(hash)
+}
+
+func VerifySignature(signature string, msg string) (bool, error) {
+	return client.VerifySignature(signature, msg)
 }
