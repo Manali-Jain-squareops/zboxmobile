@@ -132,6 +132,15 @@ func (a *Allocation) GetStats() (string, error) {
 	return string(retBytes), nil
 }
 
+func (a *Allocation) GetBlobberStats() (string, error) {
+	stats := a.sdkAllocation.GetBlobberStats()
+	retBytes, err := json.Marshal(stats)
+	if err != nil {
+		return "", err
+	}
+	return string(retBytes), nil
+}
+
 func (a *Allocation) GetShareAuthToken(path string, filename string, referenceType string, refereeClientID string) (string, error) {
 	return a.sdkAllocation.GetAuthTicketForShare(path, filename, referenceType, refereeClientID)
 }
