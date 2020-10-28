@@ -234,3 +234,11 @@ func (a *Allocation) StartRepair(localRootPath, pathToRepair string, statusCb St
 func (a *Allocation) CancelRepair() error {
 	return a.sdkAllocation.CancelRepair()
 }
+
+func (a *Allocation) CopyObject(path string, destPath string) error {
+	return a.sdkAllocation.CopyObject(path, destPath)
+}
+
+func (a *Allocation) MoveObject(path string, destPath string) error {
+	return a.sdkAllocation.MoveObject(path, destPath)
+}
