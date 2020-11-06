@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/0chain/gosdk/zboxcore/blockchain"
+	"github.com/0chain/gosdk/zboxcore/fileref"
 	"github.com/0chain/gosdk/zboxcore/sdk"
 )
 
@@ -79,40 +80,96 @@ func (a *Allocation) DownloadThumbnail(remotePath, localPath string, statusCb St
 	return a.sdkAllocation.DownloadThumbnail(localPath, remotePath, statusCb)
 }
 
-func (a *Allocation) UploadFile(localPath, remotePath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.UploadFile(localPath, remotePath, statusCb)
+func (a *Allocation) UploadFile(localPath, remotePath, fileAttrs string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.UploadFile(localPath, remotePath, attrs, statusCb)
 }
 
 func (a *Allocation) RepairFile(localPath, remotePath string, statusCb StatusCallback) error {
 	return a.sdkAllocation.RepairFile(localPath, remotePath, statusCb)
 }
 
-func (a *Allocation) UploadFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.UploadFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
+func (a *Allocation) UploadFileWithThumbnail(localPath, remotePath, fileAttrs string, thumbnailpath string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.UploadFileWithThumbnail(localPath, remotePath, thumbnailpath, attrs, statusCb)
 }
 
-func (a *Allocation) EncryptAndUploadFile(localPath, remotePath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.EncryptAndUploadFile(localPath, remotePath, statusCb)
+func (a *Allocation) EncryptAndUploadFile(localPath, remotePath, fileAttrs string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.EncryptAndUploadFile(localPath, remotePath, attrs, statusCb)
 }
 
-func (a *Allocation) EncryptAndUploadFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.EncryptAndUploadFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
+func (a *Allocation) EncryptAndUploadFileWithThumbnail(localPath, remotePath, fileAttrs string, thumbnailpath string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.EncryptAndUploadFileWithThumbnail(localPath, remotePath, thumbnailpath, attrs, statusCb)
 }
 
-func (a *Allocation) UpdateFile(localPath, remotePath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.UpdateFile(localPath, remotePath, statusCb)
+func (a *Allocation) UpdateFile(localPath, remotePath, fileAttrs string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.UpdateFile(localPath, remotePath, attrs, statusCb)
 }
 
-func (a *Allocation) UpdateFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.UpdateFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
+func (a *Allocation) UpdateFileWithThumbnail(localPath, remotePath, fileAttrs string, thumbnailpath string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.UpdateFileWithThumbnail(localPath, remotePath, thumbnailpath, attrs, statusCb)
 }
 
-func (a *Allocation) EncryptAndUpdateFile(localPath, remotePath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.EncryptAndUpdateFile(localPath, remotePath, statusCb)
+func (a *Allocation) EncryptAndUpdateFile(localPath, remotePath, fileAttrs string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.EncryptAndUpdateFile(localPath, remotePath, attrs, statusCb)
 }
 
-func (a *Allocation) EncryptAndUpdateFileWithThumbnail(localPath, remotePath string, thumbnailpath string, statusCb StatusCallback) error {
-	return a.sdkAllocation.EncryptAndUpdateFileWithThumbnail(localPath, remotePath, thumbnailpath, statusCb)
+func (a *Allocation) EncryptAndUpdateFileWithThumbnail(localPath, remotePath, fileAttrs string, thumbnailpath string, statusCb StatusCallback) error {
+	var attrs fileref.Attributes
+	if len(fileAttrs) > 0 {
+		err := json.Unmarshal([]byte(fileAttrs), &attrs)
+		if err != nil {
+			return fmt.Errorf("failed to convert fileAttrs. %v", err)
+		}
+	}
+	return a.sdkAllocation.EncryptAndUpdateFileWithThumbnail(localPath, remotePath, thumbnailpath, attrs, statusCb)
 }
 
 func (a *Allocation) DeleteFile(remotePath string) error {
@@ -149,12 +206,12 @@ func (a *Allocation) GetAuthToken(path string, filename string, referenceType st
 	return a.sdkAllocation.GetAuthTicket(path, filename, referenceType, refereeClientID, refereeEncryptionPublicKey)
 }
 
-func (a *Allocation) DownloadFromAuthTicket(localPath string, authTicket string, remoteLookupHash string, remoteFilename string, status StatusCallback) error {
-	return a.sdkAllocation.DownloadFromAuthTicket(localPath, authTicket, remoteLookupHash, remoteFilename, status)
+func (a *Allocation) DownloadFromAuthTicket(localPath string, authTicket string, remoteLookupHash string, remoteFilename string, rxPay bool, status StatusCallback) error {
+	return a.sdkAllocation.DownloadFromAuthTicket(localPath, authTicket, remoteLookupHash, remoteFilename, rxPay, status)
 }
 
-func (a *Allocation) DownloadThumbnailFromAuthTicket(localPath string, authTicket string, remoteLookupHash string, remoteFilename string, status StatusCallback) error {
-	return a.sdkAllocation.DownloadThumbnailFromAuthTicket(localPath, authTicket, remoteLookupHash, remoteFilename, status)
+func (a *Allocation) DownloadThumbnailFromAuthTicket(localPath string, authTicket string, remoteLookupHash string, remoteFilename string, rxPay bool, status StatusCallback) error {
+	return a.sdkAllocation.DownloadThumbnailFromAuthTicket(localPath, authTicket, remoteLookupHash, remoteFilename, rxPay, status)
 }
 
 func (a *Allocation) GetFileStats(path string) (string, error) {
