@@ -240,24 +240,28 @@ func (a *Allocation) CancelUpload(localpath string) error {
 
 func (a *Allocation) GetDiff(lastSyncCachePath string, localRootPath string, localFileFilters string, remoteExcludePaths string) (string, error) {
 	var filterArray []string
+	fmt.Println("===========", 1)
 	err := json.Unmarshal([]byte(localFileFilters), &filterArray)
 	if err != nil {
 		return "", fmt.Errorf("invalid local file filter JSON. %v", err)
 	}
+	fmt.Println("===========", 2, err)
 	var exclPathArray []string
 	err = json.Unmarshal([]byte(remoteExcludePaths), &exclPathArray)
 	if err != nil {
 		return "", fmt.Errorf("invalid remote exclude path JSON. %v", err)
 	}
-
+	fmt.Println("===========", 3, err)
 	lFdiff, err := a.sdkAllocation.GetAllocationDiff(lastSyncCachePath, localRootPath, filterArray, exclPathArray)
 	if err != nil {
 		return "", fmt.Errorf("get allocation diff in sdk failed. %v", err)
 	}
+	fmt.Println("===========", 4, err)
 	retBytes, err := json.Marshal(lFdiff)
 	if err != nil {
 		return "", fmt.Errorf("failed to convert JSON. %v", err)
 	}
+	fmt.Println("===========", 5, err)
 	return string(retBytes), nil
 }
 
