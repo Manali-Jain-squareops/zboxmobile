@@ -238,7 +238,7 @@ func (a *Allocation) CancelUpload(localpath string) error {
 	return a.sdkAllocation.CancelUpload(localpath)
 }
 
-func (a *Allocation) GetAllocationDiff(lastSyncCachePath string, localRootPath string, localFileFilters string, remoteExcludePaths string) (string, error) {
+func (a *Allocation) GetDiff(lastSyncCachePath string, localRootPath string, localFileFilters string, remoteExcludePaths string) (string, error) {
 	var filterArray []string
 	err := json.Unmarshal([]byte(localFileFilters), &filterArray)
 	if err != nil {
