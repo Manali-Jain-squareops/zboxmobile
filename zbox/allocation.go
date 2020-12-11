@@ -76,6 +76,10 @@ func (a *Allocation) DownloadFile(remotePath, localPath string, statusCb StatusC
 	return a.sdkAllocation.DownloadFile(localPath, remotePath, statusCb)
 }
 
+func (a *Allocation) DownloadFileByBlock(remotePath, localPath string, startBlock, endBlock int64, numBlocks int, statusCb StatusCallback) error {
+	return a.sdkAllocation.DownloadFileByBlock(localPath, remotePath, startBlock, endBlock, numBlocks, statusCb)
+}
+
 func (a *Allocation) DownloadThumbnail(remotePath, localPath string, statusCb StatusCallback) error {
 	return a.sdkAllocation.DownloadThumbnail(localPath, remotePath, statusCb)
 }
@@ -208,6 +212,10 @@ func (a *Allocation) GetAuthToken(path string, filename string, referenceType st
 
 func (a *Allocation) DownloadFromAuthTicket(localPath string, authTicket string, remoteLookupHash string, remoteFilename string, rxPay bool, status StatusCallback) error {
 	return a.sdkAllocation.DownloadFromAuthTicket(localPath, authTicket, remoteLookupHash, remoteFilename, rxPay, status)
+}
+
+func (a *Allocation) DownloadFromAuthTicketByBlocks(localPath string, authTicket string, startBlock, endBlock int64, numBlocks int, remoteLookupHash string, remoteFilename string, rxPay bool, status StatusCallback) error {
+	return a.sdkAllocation.DownloadFromAuthTicketByBlocks(localPath, authTicket, startBlock, endBlock, numBlocks, remoteLookupHash, remoteFilename, rxPay, status)
 }
 
 func (a *Allocation) DownloadThumbnailFromAuthTicket(localPath string, authTicket string, remoteLookupHash string, remoteFilename string, rxPay bool, status StatusCallback) error {
