@@ -20,6 +20,7 @@ PKG_EXPORTS := $(PKG_ZBOXMOBILE) $(PKG_ZCNCORE)
 OUTDIR := $(ROOT_DIR)/out
 IOSMOBILESDKDIR     := $(OUTDIR)/0chainiosmobilesdk
 ANDROIDMOBILESDKDIR := $(OUTDIR)/0chainandroidmobilesdk
+MACSDKDIR	:= $(OUTDIR)/0chainmacsdk
 IOSBINNAME 		:= zbox.framework
 ANDROIDBINNAME	:= zbox.aar
 
@@ -53,6 +54,12 @@ ifeq ($(filter-out undefined,$(foreach v, IOS ANDROID,$(origin $(v)))),)
 	@echo '   For iOS and Android: make build-mobilesdk IOS=1 ANDROID=1'
 	@echo '   For iOS only: make build-mobilesdk IOS=1'
 	@echo '   For Android only: make build-mobilesdk ANDROID=1'
+	@echo '   For Mac(xcode 12) only: make build-mobilesdk MAC=1'
+endif
+ifneq ($(MAC),)
+	@echo "Building MAC framework. Please wait..."
+	@@./tools/gomobile bind -ldflags="-s -w -v -X main.version=1.0" -target=ios/amd64 -tags ios -o $(MACSDKDIR)/$(IOSBINNAME) $(PKG_EXPORTS)
+	@echo "   $(IOSMOBILESDKDIR)/$(IOSBINNAME). - [OK]"
 endif
 ifneq ($(IOS),)
 	@echo "Building iOS framework. Please wait..."

@@ -1,0 +1,18 @@
+ios-mac:
+	ARCH=x86_64
+	PLATFORM="iPhoneSimulator"
+	BIT=64
+
+	@echo "Building iOS-Mac (min version 10.15) $(ARCH) BIT=$(BIT)"
+	$(eval IOS_CFLAGS=$(IOS_CFLAGS) -DMCL_SIZEOF_UNIT=8)
+	@echo IOS_CFLAGS=$(IOS_CFLAGS)
+	$(eval IOS_OUTDIR=ios-mac/)
+	$(eval IOS_SDK_PATH=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk)
+	$(eval IOS_COMMON=-arch $(ARCH) -isysroot $(IOS_SDK_PATH) -mmacosx-version-min=10.15)
+	@mkdir -p $(IOS_OUTDIR)
+	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c ../mcl/src/fp.cpp -o $(IOS_OUTDIR)/fp.o
+	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c ../mcl/src/base$(BIT).ll -o $(IOS_OUTDIR)/base$(BIT).o
+	$(IOS_CLANG) $(IOS_COMMON) $(IOS_CFLAGS) -c ../bls/src/bls_c$(CURVE_BIT).cpp -o $(IOS_OUTDIR)/bls_c$(CURVE_BIT).o
+	ar cru $(IOS_OUTDIR)/$(IOS_LIB) $(IOS_OUTDIR)/fp.o $(IOS_OUTDIR)/base$(BIT).o $(IOS_OUTDIR)/bls_c$(CURVE_BIT).o
+	ranlib $(IOS_OUTDIR)/$(IOS_LIB)
+	@echo $(IOS_OUTDIR)/$(IOS_LIB)
