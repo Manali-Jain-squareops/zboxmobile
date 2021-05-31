@@ -189,3 +189,7 @@ func (s *StorageSDK) WritePoolLock(durInSeconds int64, tokens, fee float64, allo
 func (s *StorageSDK) WritePoolUnlock(poolID string, fee float64) error {
 	return sdk.WritePoolUnlock(poolID, zcncore.ConvertToValue(fee))
 }
+
+func (s *StorageSDK) UpdateAllocation(size int64, expiry int64, allocationID string, lock int64) (hash string, err error) {
+	return sdk.UpdateAllocation(size, expiry, allocationID, lock)
+}

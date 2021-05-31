@@ -24,6 +24,13 @@ type Allocation struct {
 	sdkAllocation *sdk.Allocation
 }
 
+type MinMaxCost struct {
+	minW float64
+	minR float64
+	maxW float64
+	maxR float64
+}
+
 func (a *Allocation) ListDir(path string) (string, error) {
 	listResult, err := a.sdkAllocation.ListDir(path)
 	if err != nil {
@@ -306,4 +313,32 @@ func (a *Allocation) CopyObject(path string, destPath string) error {
 
 func (a *Allocation) MoveObject(path string, destPath string) error {
 	return a.sdkAllocation.MoveObject(path, destPath)
+}
+
+func (a *Allocation) GetMinWriteRead() (string, error) {
+	minW, minR, err := a.sdkAllocation.GetMinWriteRead()
+	maxW, maxR, err := a.sdkAllocation.GetMaxWriteRead()
+
+	minMaxCost := &MinMaxCost{}
+	minMaxCost.maxR = maxR
+	minMaxCost.maxW = maxW
+	minMaxCost.minR = minR
+	minMaxCost.minW = minW
+
+	retBytes, err := json.Marshal(minMaxCost)
+	if err != nil {
+		return "", fmt.Errorf("failed to convert JSON. %v", err)
+	}
+
+	return string(retBytes), nil
+}
+
+func (a *Allocation) GetMaxStorageCost(size int64) (string, error) {
+	cost, err := a.sdkAllocation.GetMaxStorageCost(size)
+	return fmt.Sprintf("%f", cost), err
+}
+
+func (a *Allocation) GetMinStorageCost(size int64) (string, error) {
+	cost, err := a.sdkAllocation.GetMinStorageCost(size)
+	return fmt.Sprintf("%f", cost), err
 }
