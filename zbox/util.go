@@ -9,10 +9,12 @@ import (
 	"github.com/0chain/gosdk/zboxcore/zboxutil"
 )
 
+// GetClientEncryptedPublicKey - getting client encrypted pub key
 func GetClientEncryptedPublicKey() (string, error) {
 	return sdk.GetClientEncryptedPublicKey()
 }
 
+// Encrypt - encrypting text with key
 func Encrypt(key, text string) (string, error) {
 	keyBytes := []byte(key)
 	textBytes := []byte(text)
@@ -23,6 +25,7 @@ func Encrypt(key, text string) (string, error) {
 	return hex.EncodeToString(response), nil
 }
 
+// Decrypt - decrypting text with key
 func Decrypt(key, text string) (string, error) {
 	keyBytes := []byte(key)
 	textBytes, _ := hex.DecodeString(text)
@@ -33,6 +36,7 @@ func Decrypt(key, text string) (string, error) {
 	return string(response), nil
 }
 
+// GetNetwork - get current network
 func GetNetwork() (string, error) {
 	networkDetails := sdk.GetNetwork()
 	networkDetailsBytes, err := json.Marshal(networkDetails)
@@ -42,6 +46,7 @@ func GetNetwork() (string, error) {
 	return string(networkDetailsBytes), nil
 }
 
+// GetBlobbers - get list of blobbers
 func GetBlobbers() (string, error) {
 	blobbers, err := sdk.GetBlobbers()
 	if err != nil {
@@ -55,10 +60,12 @@ func GetBlobbers() (string, error) {
 	return string(blobbersBytes), nil
 }
 
+// Sign - sign hash
 func Sign(hash string) (string, error) {
 	return client.Sign(hash)
 }
 
+// VerifySignature - verify message with signature
 func VerifySignature(signature string, msg string) (bool, error) {
 	return client.VerifySignature(signature, msg)
 }

@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/0chain/gosdk/zboxcore/client"
-	. "github.com/0chain/gosdk/zboxcore/logger"
+	l "github.com/0chain/gosdk/zboxcore/logger"
 	"github.com/0chain/gosdk/zboxcore/sdk"
 	"github.com/0chain/gosdk/zcncore"
 )
 
+// ChainConfig - blockchain config
 type ChainConfig struct {
 	ChainID           string   `json:"chain_id,omitempty"`
 	PreferredBlobbers []string `json:"preferred_blobbers"`
@@ -20,11 +21,13 @@ type ChainConfig struct {
 	SignatureScheme   string   `json:"signature_scheme"`
 }
 
+// StorageSDK - storage SDK config
 type StorageSDK struct {
 	chainconfig *ChainConfig
 	client      *client.Client
 }
 
+// SetLogFile - setting up log level for core libraries
 func SetLogFile(logFile string, verbose bool) {
 	zcncore.SetLogFile(logFile, verbose)
 	sdk.SetLogFile(logFile, verbose)
@@ -37,27 +40,29 @@ func SetLogLevel(logLevel int) {
 	sdk.SetLogLevel(logLevel)
 }
 
+// InitStorageSDK - init storage sdk from config
 func InitStorageSDK(clientjson string, configjson string) (*StorageSDK, error) {
 	configObj := &ChainConfig{}
 	err := json.Unmarshal([]byte(configjson), configObj)
 	if err != nil {
-		Logger.Error(err)
+		l.Logger.Error(err)
 		return nil, err
 	}
 	err = zcncore.InitZCNSDK(configObj.BlockWorker, configObj.SignatureScheme)
 	if err != nil {
-		Logger.Error(err)
+		l.Logger.Error(err)
 		return nil, err
 	}
 	err = sdk.InitStorageSDK(clientjson, configObj.BlockWorker, configObj.ChainID, configObj.SignatureScheme, configObj.PreferredBlobbers)
 	if err != nil {
-		Logger.Error(err)
+		l.Logger.Error(err)
 		return nil, err
 	}
-	Logger.Info("Init successful")
+	l.Logger.Info("Init successful")
 	return &StorageSDK{client: client.GetClient(), chainconfig: configObj}, nil
 }
 
+// CreateAllocation - creating new allocation
 func (s *StorageSDK) CreateAllocation(datashards int, parityshards int, size, expiration, lock int64) (*Allocation, error) {
 	readPrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
 	writePrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
@@ -72,6 +77,7 @@ func (s *StorageSDK) CreateAllocation(datashards int, parityshards int, size, ex
 	return &Allocation{ID: sdkAllocation.ID, DataShards: sdkAllocation.DataShards, ParityShards: sdkAllocation.ParityShards, Size: sdkAllocation.Size, Expiration: sdkAllocation.Expiration, blobbers: sdkAllocation.Blobbers, sdkAllocation: sdkAllocation}, nil
 }
 
+// GetAllocation - get allocation from ID
 func (s *StorageSDK) GetAllocation(allocationID string) (*Allocation, error) {
 	sdkAllocation, err := sdk.GetAllocation(allocationID)
 	if err != nil {
@@ -80,6 +86,7 @@ func (s *StorageSDK) GetAllocation(allocationID string) (*Allocation, error) {
 	return &Allocation{ID: sdkAllocation.ID, DataShards: sdkAllocation.DataShards, ParityShards: sdkAllocation.ParityShards, Size: sdkAllocation.Size, Expiration: sdkAllocation.Expiration, blobbers: sdkAllocation.Blobbers, sdkAllocation: sdkAllocation}, nil
 }
 
+// GetAllocations - get list of allocations
 func (s *StorageSDK) GetAllocations() (string, error) {
 	sdkAllocations, err := sdk.GetAllocations()
 	if err != nil {
@@ -97,6 +104,7 @@ func (s *StorageSDK) GetAllocations() (string, error) {
 	return string(retBytes), nil
 }
 
+// GetAllocationFromAuthTicket - get allocation from Auth ticket
 func (s *StorageSDK) GetAllocationFromAuthTicket(authTicket string) (*Allocation, error) {
 	sdkAllocation, err := sdk.GetAllocationFromAuthTicket(authTicket)
 	if err != nil {
@@ -105,6 +113,7 @@ func (s *StorageSDK) GetAllocationFromAuthTicket(authTicket string) (*Allocation
 	return &Allocation{ID: sdkAllocation.ID, DataShards: sdkAllocation.DataShards, ParityShards: sdkAllocation.ParityShards, Size: sdkAllocation.Size, Expiration: sdkAllocation.Expiration, blobbers: sdkAllocation.Blobbers, sdkAllocation: sdkAllocation}, nil
 }
 
+// GetAllocationStats - get allocation stats by allocation ID
 func (s *StorageSDK) GetAllocationStats(allocationID string) (string, error) {
 	allocationObj, err := sdk.GetAllocation(allocationID)
 	if err != nil {
@@ -118,10 +127,12 @@ func (s *StorageSDK) GetAllocationStats(allocationID string) (string, error) {
 	return string(retBytes), nil
 }
 
+// FinalizeAllocation - finalize allocation
 func (s *StorageSDK) FinalizeAllocation(allocationID string) (string, error) {
 	return sdk.FinalizeAllocation(allocationID)
 }
 
+// CancelAllocation - cancel allocation by ID
 func (s *StorageSDK) CancelAllocation(allocationID string) (string, error) {
 	return sdk.CancelAllocation(allocationID)
 }
@@ -192,6 +203,13 @@ func (s *StorageSDK) WritePoolUnlock(poolID string, fee float64) error {
 	return sdk.WritePoolUnlock(poolID, zcncore.ConvertToValue(fee))
 }
 
+// GetVersion getting current version for gomobile lib
 func (s *StorageSDK) GetVersion() string {
 	return version.VERSIONSTR + "/" + zboxmobile.VERSION
 }
+
+// UpdateAllocation with new expiry and size
+func (s *StorageSDK) UpdateAllocation(size int64, expiry int64, allocationID string, lock int64) (hash string, err error) {
+	return sdk.UpdateAllocation(size, expiry, allocationID, lock)
+}
+
