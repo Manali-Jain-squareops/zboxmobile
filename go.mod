@@ -7,7 +7,7 @@ require (
 	github.com/h2non/filetype v1.1.1 // indirect
 	github.com/klauspost/cpuid v1.3.1 // indirect
 	go.dedis.ch/kyber/v3 v3.0.13 // indirect
-	golang.org/x/sys v0.0.0-20210124154548-22da62e12c0c // indirect
+	golang.org/x/mobile v0.0.0-20210527171505-7e972142eb43 // indirect
 )
 
 // temporary, for development

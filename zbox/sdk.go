@@ -2,6 +2,8 @@ package zbox
 
 import (
 	"encoding/json"
+	"github.com/0chain/gosdk/core/version"
+	"github.com/0chain/zboxmobile"
 	"math"
 	"time"
 
@@ -120,8 +122,8 @@ func (s *StorageSDK) FinalizeAllocation(allocationID string) (string, error) {
 	return sdk.FinalizeAllocation(allocationID)
 }
 
-func (s *StorageSDK) CancelAlloctioan(allocationID string) (string, error) {
-	return sdk.CancelAlloctioan(allocationID)
+func (s *StorageSDK) CancelAllocation(allocationID string) (string, error) {
+	return sdk.CancelAllocation(allocationID)
 }
 
 // READ POOL METHODS
@@ -188,4 +190,8 @@ func (s *StorageSDK) WritePoolLock(durInSeconds int64, tokens, fee float64, allo
 //WritePoolUnlock is to unlock tokens from write pool
 func (s *StorageSDK) WritePoolUnlock(poolID string, fee float64) error {
 	return sdk.WritePoolUnlock(poolID, zcncore.ConvertToValue(fee))
+}
+
+func (s *StorageSDK) GetVersion() string {
+	return version.VERSIONSTR + "/" + zboxmobile.VERSION
 }
