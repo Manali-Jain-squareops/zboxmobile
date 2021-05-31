@@ -22,6 +22,10 @@ Since this is written in Go, It's pretty easy and fast to use it directly with t
         For Mac(xcode 12+) only:
                 make build-mobilesdk MAC=1
 
+- For any updates in code, before compiling run:
+
+        go generate sh -c "sed -e /@REMOVE@/d -e s/@DATE@/`date +%Y%m%d`/ version.go > version_generated.go"
+
 ### Notes
 - For iOS: If you are already using the SDK and  getting the older version after updating, then you need to manually remove the SDK from the location where is was already placed (Most probably it will be Project Folder > SDK > zboxmobile.framework).
 - For Mac: Since XCode 12 you can't import ios library/framework into mac project (xcode 11 still allowing). Before compiling to Mac, be sure to complie bls-go-binary with xcode 12 script. Follow up with external guide: /tools/xcode12-build.md
