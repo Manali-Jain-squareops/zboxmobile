@@ -3,15 +3,37 @@ package zbox
 import (
 	"encoding/hex"
 	"encoding/json"
-
+	"fmt"
 	"github.com/0chain/gosdk/zboxcore/client"
 	"github.com/0chain/gosdk/zboxcore/sdk"
 	"github.com/0chain/gosdk/zboxcore/zboxutil"
+	"github.com/0chain/gosdk/zcncore"
+	"strconv"
 )
 
 // GetClientEncryptedPublicKey - getting client encrypted pub key
 func GetClientEncryptedPublicKey() (string, error) {
 	return sdk.GetClientEncryptedPublicKey()
+}
+
+func TokensToEth(tokens int64) string {
+	return fmt.Sprintf("%f", zcncore.TokensToEth(tokens))
+}
+
+func GEthToTokens(tokens int64) string {
+	return fmt.Sprintf("%f", zcncore.GTokensToEth(tokens))
+}
+
+// ConvertZcnTokenToETH - converting Zcn tokens to Eth
+func ConvertZcnTokenToETH(token float64) (string, error) {
+	res, err := zcncore.ConvertZcnTokenToETH(token)
+	return fmt.Sprintf("%f",res), err
+}
+
+// SuggestEthGasPrice - return back suggested price for gas
+func SuggestEthGasPrice() (string, error) {
+	res, err := zcncore.SuggestEthGasPrice()
+	return strconv.FormatInt(res, 10), err
 }
 
 // Encrypt - encrypting text with key
