@@ -2,10 +2,12 @@ package zbox
 
 import (
 	"encoding/json"
+	"math"
+	"strings"
+	"time"
+
 	"github.com/0chain/gosdk/core/version"
 	"github.com/0chain/zboxmobile"
-	"math"
-	"time"
 
 	"github.com/0chain/gosdk/zboxcore/client"
 	l "github.com/0chain/gosdk/zboxcore/logger"
@@ -67,6 +69,21 @@ func (s *StorageSDK) CreateAllocation(datashards int, parityshards int, size, ex
 	readPrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
 	writePrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
 	sdkAllocationID, err := sdk.CreateAllocation(datashards, parityshards, size, expiration, readPrice, writePrice, 1*time.Hour, lock)
+	if err != nil {
+		return nil, err
+	}
+	sdkAllocation, err := sdk.GetAllocation(sdkAllocationID)
+	if err != nil {
+		return nil, err
+	}
+	return &Allocation{ID: sdkAllocation.ID, DataShards: sdkAllocation.DataShards, ParityShards: sdkAllocation.ParityShards, Size: sdkAllocation.Size, Expiration: sdkAllocation.Expiration, blobbers: sdkAllocation.Blobbers, sdkAllocation: sdkAllocation}, nil
+}
+
+// CreateAllocationWithBlobbers - creating new allocation with list of blobbers
+func (s *StorageSDK) CreateAllocationWithBlobbers(datashards int, parityshards int, size, expiration, lock int64, blobbersRaw string) (*Allocation, error) {
+	readPrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	writePrice := sdk.PriceRange{Min: 0, Max: math.MaxInt64}
+	sdkAllocationID, err := sdk.CreateAllocationWithBlobbers(datashards, parityshards, size, expiration, readPrice, writePrice, 1*time.Hour, lock, strings.Split(blobbersRaw, "/n"))
 	if err != nil {
 		return nil, err
 	}
@@ -213,3 +230,15 @@ func (s *StorageSDK) UpdateAllocation(size int64, expiry int64, allocationID str
 	return sdk.UpdateAllocation(size, expiry, allocationID, lock)
 }
 
+// GetBlobbersList get list of blobbers in string
+func (s *StorageSDK) GetBlobbersList() (string, error) {
+	blobbs, err := sdk.GetBlobbers()
+	if err != nil {
+		return "", err
+	}
+	retBytes, err := json.Marshal(blobbs)
+	if err != nil {
+		return "", err
+	}
+	return string(retBytes), nil
+}

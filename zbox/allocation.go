@@ -318,7 +318,6 @@ func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths st
 	return a.sdkAllocation.SaveRemoteSnapshot(pathToSave, exclPathArray)
 }
 
-
 // CommitMetaTransaction - authTicket - Optional, Only when you do download using authTicket and lookUpHash.
 // lookupHash - Same as above.
 // fileMeta - Optional, Only when you do delete and have already fetched fileMeta before delete operation.
@@ -381,5 +380,17 @@ func (a *Allocation) GetMaxStorageCost(size int64) (string, error) {
 // GetMinStorageCost - getting back min cost for allocation
 func (a *Allocation) GetMinStorageCost(size int64) (string, error) {
 	cost, err := a.sdkAllocation.GetMinStorageCost(size)
+	return fmt.Sprintf("%f", cost), err
+}
+
+// GetMaxStorageCostWithBlobbers - getting cost for listed blobbers
+func (a *Allocation) GetMaxStorageCostWithBlobbers(size int64, blobbersJson string) (string, error) {
+	var selBlobbers *[]*sdk.BlobberAllocation
+	err := json.Unmarshal([]byte(blobbersJson), selBlobbers)
+	if err != nil {
+		return "", err
+	}
+
+	cost, err := a.sdkAllocation.GetMaxStorageCostFromBlobbers(size, *selBlobbers)
 	return fmt.Sprintf("%f", cost), err
 }
