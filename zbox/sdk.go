@@ -2,10 +2,11 @@ package zbox
 
 import (
 	"encoding/json"
-	"github.com/0chain/gosdk/core/version"
-	"github.com/0chain/zboxmobile"
 	"math"
 	"time"
+
+	"github.com/0chain/gosdk/core/version"
+	"github.com/0chain/zboxmobile"
 
 	"github.com/0chain/gosdk/zboxcore/client"
 	l "github.com/0chain/gosdk/zboxcore/logger"
@@ -210,6 +211,5 @@ func (s *StorageSDK) GetVersion() string {
 
 // UpdateAllocation with new expiry and size
 func (s *StorageSDK) UpdateAllocation(size int64, expiry int64, allocationID string, lock int64) (hash string, err error) {
-	return sdk.UpdateAllocation(size, expiry, allocationID, lock)
+	return sdk.UpdateAllocation(size, expiry, allocationID, lock, true)
 }
-
