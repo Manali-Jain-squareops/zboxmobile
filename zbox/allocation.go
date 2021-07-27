@@ -2,7 +2,13 @@ package zbox
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
+	"path"
+	"sort"
+	"sync"
+	"time"
 
 	"github.com/0chain/gosdk/zboxcore/blockchain"
 	"github.com/0chain/gosdk/zboxcore/fileref"
@@ -318,7 +324,6 @@ func (a *Allocation) SaveRemoteSnapshot(pathToSave string, remoteExcludePaths st
 	return a.sdkAllocation.SaveRemoteSnapshot(pathToSave, exclPathArray)
 }
 
-
 // CommitMetaTransaction - authTicket - Optional, Only when you do download using authTicket and lookUpHash.
 // lookupHash - Same as above.
 // fileMeta - Optional, Only when you do delete and have already fetched fileMeta before delete operation.
@@ -383,3 +388,267 @@ func (a *Allocation) GetMinStorageCost(size int64) (string, error) {
 	cost, err := a.sdkAllocation.GetMinStorageCost(size)
 	return fmt.Sprintf("%f", cost), err
 }
+
+// GetMinStorageCost - getting back min cost for allocation
+func (a *Allocation) PlayStreaming(localPath, remotePath, authTicket, lookupHash string, delay int, statusCb StatusCallback) error {
+	downloader, err := createM3u8Downloader(localPath, remotePath, authTicket, a.ID, lookupHash, false, delay)
+	if err != nil {
+		return err
+	}
+
+	downloader.status = statusCb
+	return downloader.Start()
+}
+
+// M3u8Downloader download files from blobber's dir, and build them into a local m3u8 playlist
+type M3u8Downloader struct {
+	sync.RWMutex
+	delay int
+
+	localDir     string
+	localPath    string
+	remotePath   string
+	authTicket   string
+	allocationID string
+	rxPay        bool
+
+	allocationObj *sdk.Allocation
+
+	lookupHash    string
+	items         []MediaItem
+	downloadQueue chan MediaItem
+	playlist      *sdk.MediaPlaylist
+	done          chan error
+	status        StatusCallback
+}
+
+func createM3u8Downloader(localPath, remotePath, authTicket, allocationID, lookupHash string, rxPay bool, delay int) (*M3u8Downloader, error) {
+	if len(remotePath) == 0 && (len(authTicket) == 0) {
+		return nil, errors.New("Error: remotepath / authticket flag is missing")
+	}
+
+	if len(localPath) == 0 {
+		return nil, errors.New("Error: localpath is missing")
+	}
+	dir := path.Dir(localPath)
+
+	file, err := os.Create(localPath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	downloader := &M3u8Downloader{
+		localDir:      dir,
+		localPath:     localPath,
+		remotePath:    remotePath,
+		authTicket:    authTicket,
+		allocationID:  allocationID,
+		rxPay:         rxPay,
+		downloadQueue: make(chan MediaItem, 100),
+		playlist:      sdk.NewMediaPlaylist(delay, file),
+		done:          make(chan error, 1),
+	}
+
+	if len(remotePath) > 0 {
+		if len(allocationID) == 0 { // check if the flag "path" is set
+			return nil, errors.New("Error: allocation flag is missing") // If not, we'll let the user know
+		}
+
+		allocationObj, err := sdk.GetAllocation(allocationID)
+
+		if err != nil {
+			return nil, fmt.Errorf("Error fetching the allocation: %s", err)
+		}
+
+		downloader.allocationObj = allocationObj
+
+	} else if len(authTicket) > 0 {
+		allocationObj, err := sdk.GetAllocationFromAuthTicket(authTicket)
+		if err != nil {
+			return nil, fmt.Errorf("Error fetching the allocation: %s", err)
+		}
+
+		downloader.allocationObj = allocationObj
+
+		at := sdk.InitAuthTicket(authTicket)
+		isDir, err := at.IsDir()
+		if isDir && len(lookupHash) == 0 {
+			lookupHash, err = at.GetLookupHash()
+			if err != nil {
+				return nil, fmt.Errorf("Error getting the lookuphash from authticket: %s", err)
+			}
+
+			downloader.lookupHash = lookupHash
+		}
+		if !isDir {
+			return nil, fmt.Errorf("Invalid operation. Auth ticket is not for a directory: %s", err)
+		}
+
+	}
+
+	return downloader, nil
+}
+
+// Start start to download ,and build playlist
+func (d *M3u8Downloader) Start() error {
+	if d.status != nil {
+		d.status.Started(d.allocationID, d.localPath, 0, 0)
+	}
+
+	go d.autoDownload()
+	go d.autoRefreshList()
+	go d.playlist.Play()
+
+	err := <-d.done
+
+	return err
+}
+
+func (d *M3u8Downloader) addToDownload(item MediaItem) {
+	d.downloadQueue <- item
+}
+
+func (d *M3u8Downloader) autoDownload() {
+	for {
+		item := <-d.downloadQueue
+		for i := 0; i < 3; i++ {
+			if path, err := d.download(item); err == nil {
+				d.playlist.Append(path)
+				if d.status != nil {
+					d.status.InProgress(d.allocationID, path, 1, len(d.items), nil)
+				}
+				break
+			}
+		}
+	}
+}
+
+func (d *M3u8Downloader) autoRefreshList() {
+	for {
+		list, err := d.getList()
+		if err != nil {
+			continue
+		}
+
+		d.Lock()
+		n := len(d.items)
+		max := len(list)
+		if n < max {
+			sort.Sort(SortedListResult(list))
+
+			for i := n; i < max; i++ {
+				item := MediaItem{
+					Name: list[i].Name,
+					Path: list[i].Path,
+				}
+				d.items = append(d.items, item)
+				d.addToDownload(item)
+			}
+		}
+		d.Unlock()
+
+		time.Sleep(1 * time.Second)
+	}
+}
+
+func (d *M3u8Downloader) download(item MediaItem) (string, error) {
+	wg := &sync.WaitGroup{}
+	statusBar := &StatusBarMocked{wg: wg}
+	wg.Add(1)
+
+	localPath := d.localDir + string(os.PathSeparator) + item.Name
+	remotePath := item.Path
+
+	if len(d.remotePath) > 0 {
+		err := d.allocationObj.DownloadFile(localPath, remotePath, statusBar)
+		if err != nil {
+			return "", err
+		}
+		wg.Wait()
+	}
+
+	if !statusBar.success {
+		return "", statusBar.err
+	}
+
+	return localPath, nil
+}
+
+func (d *M3u8Downloader) getList() ([]*sdk.ListResult, error) {
+	//get list from remote allocations's path
+	if len(d.remotePath) > 0 {
+		ref, err := d.allocationObj.ListDir(d.remotePath)
+		if err != nil {
+			return nil, err
+		}
+		return ref.Children, nil
+	}
+
+	//get list from authticket
+	ref, err := d.allocationObj.ListDirFromAuthTicket(d.authTicket, d.lookupHash)
+	if err != nil {
+		return nil, err
+	}
+
+	return ref.Children, nil
+
+}
+
+// SortedListResult sort files order by time
+type SortedListResult []*sdk.ListResult
+
+func (a SortedListResult) Len() int {
+	return len(a)
+}
+func (a SortedListResult) Less(i, j int) bool {
+
+	l := a[i]
+	r := a[j]
+
+	if len(l.Name) < len(r.Name) {
+		return true
+	}
+
+	if len(l.Name) > len(r.Name) {
+		return false
+	}
+
+	return l.Name < r.Name
+}
+
+func (a SortedListResult) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+// MediaItem ts file
+type MediaItem struct {
+	Name string
+	Path string
+}
+
+type StatusBarMocked struct {
+	wg      *sync.WaitGroup
+	success bool
+	err     error
+}
+
+func (s *StatusBarMocked) Started(allocationId, filePath string, op int, totalBytes int) {}
+
+func (s *StatusBarMocked) InProgress(allocationId, filePath string, op int, completedBytes int, data []byte) {
+}
+
+func (s *StatusBarMocked) Error(allocationID string, filePath string, op int, err error) {
+	s.success = false
+	s.err = err
+	s.wg.Done()
+}
+
+func (s *StatusBarMocked) Completed(allocationId, filePath string, filename string, mimetype string, size int, op int) {
+	s.success = true
+	s.wg.Done()
+}
+
+func (s *StatusBarMocked) CommitMetaCompleted(request, response string, err error) {}
+
+func (s *StatusBarMocked) RepairCompleted(filesRepaired int) {}
