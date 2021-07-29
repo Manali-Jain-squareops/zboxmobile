@@ -3,7 +3,7 @@ module github.com/0chain/zboxmobile
 go 1.13
 
 require (
-	github.com/0chain/gosdk v1.2.77
+	github.com/0chain/gosdk v0.0.0
 	github.com/btcsuite/btcd v0.22.0-beta // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/h2non/filetype v1.1.1 // indirect
@@ -21,4 +21,4 @@ require (
 )
 
 // temporary, for development
-// replace github.com/0chain/gosdk => ../gosdk
+//replace github.com/0chain/gosdk => ../gosdk
