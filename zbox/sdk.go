@@ -227,7 +227,7 @@ func (s *StorageSDK) GetVersion() string {
 
 // UpdateAllocation with new expiry and size
 func (s *StorageSDK) UpdateAllocation(size int64, expiry int64, allocationID string, lock int64) (hash string, err error) {
-	return sdk.UpdateAllocation(size, expiry, allocationID, lock)
+	return sdk.UpdateAllocation(size, expiry, allocationID, lock, true)
 }
 
 // GetBlobbersList get list of blobbers in string
