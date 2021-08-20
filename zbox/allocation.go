@@ -595,7 +595,7 @@ func (d *M3u8Downloader) getList() ([]*sdk.ListResult, error) {
 
 }
 
-// SortedListResult sort files order by time
+// SortedListResult sort files order by name
 type SortedListResult []*sdk.ListResult
 
 func (a SortedListResult) Len() int {
