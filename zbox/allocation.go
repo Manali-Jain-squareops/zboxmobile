@@ -245,7 +245,7 @@ func (a *Allocation) GetShareAuthToken(path string, filename string, referenceTy
 
 // GetAuthToken - get auth token from refereeClientID
 func (a *Allocation) GetAuthToken(path string, filename string, referenceType string, refereeClientID string, refereeEncryptionPublicKey string, expiration int64) (string, error) {
-	return a.sdkAllocation.GetAuthTicket(path, filename, referenceType, refereeClientID, refereeEncryptionPublicKey, expiration)
+	return a.sdkAllocation.GetAuthTicket(path, filename, referenceType, refereeClientID, refereeEncryptionPublicKey)
 }
 
 // DownloadFromAuthTicket - download file from Auth ticket
