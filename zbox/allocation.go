@@ -245,7 +245,7 @@ func (a *Allocation) GetShareAuthToken(path string, filename string, referenceTy
 
 // GetAuthToken - get auth token from refereeClientID
 func (a *Allocation) GetAuthToken(path string, filename string, referenceType string, refereeClientID string, refereeEncryptionPublicKey string, expiration int64) (string, error) {
-	return a.sdkAllocation.GetAuthTicket(path, filename, referenceType, refereeClientID, refereeEncryptionPublicKey)
+	return a.sdkAllocation.GetAuthTicket(path, filename, referenceType, refereeClientID, refereeEncryptionPublicKey, expiration)
 }
 
 // DownloadFromAuthTicket - download file from Auth ticket
@@ -652,3 +652,15 @@ func (s *StatusBarMocked) Completed(allocationId, filePath string, filename stri
 func (s *StatusBarMocked) CommitMetaCompleted(request, response string, err error) {}
 
 func (s *StatusBarMocked) RepairCompleted(filesRepaired int) {}
+
+// GetMaxStorageCostWithBlobbers - getting cost for listed blobbers
+func (a *Allocation) GetMaxStorageCostWithBlobbers(size int64, blobbersJson string) (string, error) {
+	var selBlobbers *[]*sdk.BlobberAllocation
+	err := json.Unmarshal([]byte(blobbersJson), selBlobbers)
+	if err != nil {
+		return "", err
+	}
+
+	cost, err := a.sdkAllocation.GetMaxStorageCostFromBlobbers(size, *selBlobbers)
+	return fmt.Sprintf("%f", cost), err
+}
