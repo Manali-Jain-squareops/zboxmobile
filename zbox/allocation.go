@@ -382,3 +382,15 @@ func (a *Allocation) GetMinStorageCost(size int64) (string, error) {
 	cost, err := a.sdkAllocation.GetMinStorageCost(size)
 	return fmt.Sprintf("%f", cost), err
 }
+
+// GetMaxStorageCostWithBlobbers - getting cost for listed blobbers
+func (a *Allocation) GetMaxStorageCostWithBlobbers(size int64, blobbersJson string) (string, error) {
+	var selBlobbers *[]*sdk.BlobberAllocation
+	err := json.Unmarshal([]byte(blobbersJson), selBlobbers)
+	if err != nil {
+		return "", err
+	}
+
+	cost, err := a.sdkAllocation.GetMaxStorageCostFromBlobbers(size, *selBlobbers)
+	return fmt.Sprintf("%f", cost), err
+}
