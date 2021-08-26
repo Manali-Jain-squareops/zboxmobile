@@ -28,7 +28,7 @@ jobs:
         go-version: 1.14
       
     - name: Install
-      run: make install
+      run: make setup-gomobile
 
     - name: Get Branch
       id: get_version
