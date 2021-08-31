@@ -389,6 +389,73 @@ func (a *Allocation) GetMinStorageCost(size int64) (string, error) {
 	return fmt.Sprintf("%f", cost), err
 }
 
+func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
+	if len(remotePath) == 0 {
+		return errors.New("Error: remotepath / authticket flag is missing")
+	}
+
+	if len(localPath) == 0 {
+		return errors.New("Error: localpath is missing")
+	}
+
+	dir := path.Dir(localPath)
+
+	file, err := os.Create(localPath)
+
+	if err != nil {
+		return err
+	}
+
+	downloader := &M3u8Downloader{
+		localDir:      dir,
+		localPath:     localPath,
+		remotePath:    remotePath,
+		authTicket:    "",
+		allocationID:  a.ID,
+		rxPay:         false,
+		downloadQueue: make(chan MediaItem, 100),
+		playlist:      sdk.NewMediaPlaylist(0, file),
+		done:          make(chan error, 1),
+	}
+
+	downloader.allocationObj = a.sdkAllocation
+
+	listResult, err := a.sdkAllocation.ListDir(downloader.remotePath)
+	list := listResult.Children
+	if err != nil {
+		return err
+	}
+
+	downloader.Lock()
+	n := len(downloader.items)
+	max := len(list)
+	fmt.Println("max")
+	fmt.Println(max)
+	if n < max {
+		sort.Sort(SortedListResult(list))
+
+		for i := n; i < max; i++ {
+			item := MediaItem{
+				Name: list[i].Name,
+				Path: list[i].Path,
+			}
+			downloader.items = append(downloader.items, item)
+			downloader.playlist.Append(item.Name)
+			downloader.playlist.Wait = append(downloader.playlist.Wait, item.Name)
+
+			downloader.addToDownload(item)
+		}
+	}
+	downloader.Unlock()
+
+	downloader.playlist.Writer.Truncate(0)
+	downloader.playlist.Writer.Seek(0, 0)
+	downloader.playlist.Writer.Write(downloader.playlist.Encode())
+	downloader.playlist.Writer.Sync()
+
+	return nil
+}
+
 // GetMinStorageCost - getting back min cost for allocation
 func (a *Allocation) PlayStreaming(localPath, remotePath, authTicket, lookupHash string, delay int, statusCb StatusCallback) error {
 	downloader, err := createM3u8Downloader(localPath, remotePath, authTicket, a.ID, lookupHash, false, delay)
@@ -510,8 +577,11 @@ func (d *M3u8Downloader) addToDownload(item MediaItem) {
 }
 
 func (d *M3u8Downloader) autoDownload() {
-	for {
-		item := <-d.downloadQueue
+	//for {
+	item := <-d.downloadQueue
+	d.playlist.Append(item.Path)
+
+	/*
 		for i := 0; i < 3; i++ {
 			if path, err := d.download(item); err == nil {
 				d.playlist.Append(path)
@@ -520,8 +590,8 @@ func (d *M3u8Downloader) autoDownload() {
 				}
 				break
 			}
-		}
-	}
+		}*/
+	//}
 }
 
 func (d *M3u8Downloader) autoRefreshList() {
@@ -548,10 +618,11 @@ func (d *M3u8Downloader) autoRefreshList() {
 		}
 		d.Unlock()
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 }
 
+/*
 func (d *M3u8Downloader) download(item MediaItem) (string, error) {
 	wg := &sync.WaitGroup{}
 	statusBar := &StatusBarMocked{wg: wg}
@@ -573,7 +644,7 @@ func (d *M3u8Downloader) download(item MediaItem) (string, error) {
 	}
 
 	return localPath, nil
-}
+}*/
 
 func (d *M3u8Downloader) getList() ([]*sdk.ListResult, error) {
 	//get list from remote allocations's path
@@ -586,13 +657,15 @@ func (d *M3u8Downloader) getList() ([]*sdk.ListResult, error) {
 	}
 
 	//get list from authticket
-	ref, err := d.allocationObj.ListDirFromAuthTicket(d.authTicket, d.lookupHash)
-	if err != nil {
-		return nil, err
+	if len(d.authTicket) > 0 {
+		ref, err := d.allocationObj.ListDirFromAuthTicket(d.authTicket, d.lookupHash)
+		if err != nil {
+			return nil, err
+		}
+		return ref.Children, nil
 	}
 
-	return ref.Children, nil
-
+	return nil, fmt.Errorf("file not found")
 }
 
 // SortedListResult sort files order by name
