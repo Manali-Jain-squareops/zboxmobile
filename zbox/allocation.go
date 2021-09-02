@@ -414,7 +414,7 @@ func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
 		allocationID:  a.ID,
 		rxPay:         false,
 		downloadQueue: make(chan MediaItem, 100),
-		playlist:      sdk.NewMediaPlaylist(0, file),
+		playlist:      sdk.NewMediaPlaylist(5, file),
 		done:          make(chan error, 1),
 	}
 
