@@ -4,11 +4,12 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strconv"
+
 	"github.com/0chain/gosdk/zboxcore/client"
 	"github.com/0chain/gosdk/zboxcore/sdk"
 	"github.com/0chain/gosdk/zboxcore/zboxutil"
 	"github.com/0chain/gosdk/zcncore"
-	"strconv"
 )
 
 // GetClientEncryptedPublicKey - getting client encrypted pub key
@@ -27,7 +28,7 @@ func GEthToTokens(tokens int64) string {
 // ConvertZcnTokenToETH - converting Zcn tokens to Eth
 func ConvertZcnTokenToETH(token float64) (string, error) {
 	res, err := zcncore.ConvertZcnTokenToETH(token)
-	return fmt.Sprintf("%f",res), err
+	return fmt.Sprintf("%f", res), err
 }
 
 // SuggestEthGasPrice - return back suggested price for gas
@@ -84,6 +85,9 @@ func GetBlobbers() (string, error) {
 
 // Sign - sign hash
 func Sign(hash string) (string, error) {
+	if len(hash) == 0 {
+		return "", fmt.Errorf("null sign")
+	}
 	return client.Sign(hash)
 }
 

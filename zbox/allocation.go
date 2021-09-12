@@ -7,6 +7,8 @@ import (
 	"os"
 	"path"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -386,16 +388,16 @@ func (a *Allocation) GetMaxStorageCost(size int64) (string, error) {
 // GetMinStorageCost - getting back min cost for allocation
 func (a *Allocation) GetMinStorageCost(size int64) (string, error) {
 	cost, err := a.sdkAllocation.GetMinStorageCost(size)
-	return fmt.Sprintf("%f", cost), err
+	return fmt.Sprintf("%f", float64(cost)), err
 }
 
-func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
+func (a *Allocation) GetFirstSegment(localPath, remotePath, tmpPath string, delay int) (string, error) {
 	if len(remotePath) == 0 {
-		return errors.New("Error: remotepath / authticket flag is missing")
+		return "", errors.New("Error: remotepath / authticket flag is missing")
 	}
 
 	if len(localPath) == 0 {
-		return errors.New("Error: localpath is missing")
+		return "", errors.New("Error: localpath is missing")
 	}
 
 	dir := path.Dir(localPath)
@@ -403,7 +405,7 @@ func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
 	file, err := os.Create(localPath)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	downloader := &M3u8Downloader{
@@ -414,7 +416,7 @@ func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
 		allocationID:  a.ID,
 		rxPay:         false,
 		downloadQueue: make(chan MediaItem, 100),
-		playlist:      sdk.NewMediaPlaylist(5, file),
+		playlist:      sdk.NewMediaPlaylist(delay, file),
 		done:          make(chan error, 1),
 	}
 
@@ -423,16 +425,22 @@ func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
 	listResult, err := a.sdkAllocation.ListDir(downloader.remotePath)
 	list := listResult.Children
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	downloader.Lock()
 	n := len(downloader.items)
-	max := len(list)
-	fmt.Println("max")
-	fmt.Println(max)
+	max := 3 //len(list)
+	latestItem := ""
+
+	sort.Slice(list, func(i, j int) bool {
+		val_1, _ := strconv.Atoi(strings.ReplaceAll(strings.ReplaceAll(list[i].Name, "sync", ""), ".ts", ""))
+		val_2, _ := strconv.Atoi(strings.ReplaceAll(strings.ReplaceAll(list[j].Name, "sync", ""), ".ts", ""))
+		return val_1 < val_2
+	})
+
 	if n < max {
-		sort.Sort(SortedListResult(list))
+		//sort.Sort(SortedListResult(list))
 
 		for i := n; i < max; i++ {
 			item := MediaItem{
@@ -443,6 +451,12 @@ func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
 			downloader.playlist.Append(item.Name)
 			downloader.playlist.Wait = append(downloader.playlist.Wait, item.Name)
 
+			downloader.localDir = tmpPath
+
+			if _, err = downloader.download(item); err == nil {
+				fmt.Println(err)
+			}
+			latestItem = item.Name
 			downloader.addToDownload(item)
 		}
 	}
@@ -453,18 +467,19 @@ func (a *Allocation) GetFirstSegment(localPath, remotePath string) error {
 	downloader.playlist.Writer.Write(downloader.playlist.Encode())
 	downloader.playlist.Writer.Sync()
 
-	return nil
+	return latestItem, nil
 }
 
 // GetMinStorageCost - getting back min cost for allocation
-func (a *Allocation) PlayStreaming(localPath, remotePath, authTicket, lookupHash string, delay int, statusCb StatusCallback) error {
-	downloader, err := createM3u8Downloader(localPath, remotePath, authTicket, a.ID, lookupHash, false, delay)
+func (a *Allocation) PlayStreaming(localPath, remotePath, authTicket, lookupHash, initSegment string, delay int, statusCb StatusCallback) error {
+	downloader, err := createM3u8Downloader(localPath, remotePath, authTicket, a.ID, lookupHash, initSegment, false, delay)
 	if err != nil {
 		return err
 	}
 
 	downloader.status = statusCb
-	return downloader.Start()
+	go downloader.Start()
+	return nil
 }
 
 // M3u8Downloader download files from blobber's dir, and build them into a local m3u8 playlist
@@ -487,9 +502,10 @@ type M3u8Downloader struct {
 	playlist      *sdk.MediaPlaylist
 	done          chan error
 	status        StatusCallback
+	initSegment   string
 }
 
-func createM3u8Downloader(localPath, remotePath, authTicket, allocationID, lookupHash string, rxPay bool, delay int) (*M3u8Downloader, error) {
+func createM3u8Downloader(localPath, remotePath, authTicket, allocationID, lookupHash, initSegment string, rxPay bool, delay int) (*M3u8Downloader, error) {
 	if len(remotePath) == 0 && (len(authTicket) == 0) {
 		return nil, errors.New("Error: remotepath / authticket flag is missing")
 	}
@@ -512,9 +528,10 @@ func createM3u8Downloader(localPath, remotePath, authTicket, allocationID, looku
 		authTicket:    authTicket,
 		allocationID:  allocationID,
 		rxPay:         rxPay,
-		downloadQueue: make(chan MediaItem, 100),
+		downloadQueue: make(chan MediaItem, 5),
 		playlist:      sdk.NewMediaPlaylist(delay, file),
 		done:          make(chan error, 1),
+		initSegment:   initSegment,
 	}
 
 	if len(remotePath) > 0 {
@@ -551,7 +568,6 @@ func createM3u8Downloader(localPath, remotePath, authTicket, allocationID, looku
 		if !isDir {
 			return nil, fmt.Errorf("Invalid operation. Auth ticket is not for a directory: %s", err)
 		}
-
 	}
 
 	return downloader, nil
@@ -577,11 +593,18 @@ func (d *M3u8Downloader) addToDownload(item MediaItem) {
 }
 
 func (d *M3u8Downloader) autoDownload() {
-	//for {
-	item := <-d.downloadQueue
-	d.playlist.Append(item.Path)
+	for {
+		item := <-d.downloadQueue
 
-	/*
+		// file already exists
+		localPath := d.localDir + string(os.PathSeparator) + item.Name
+		_, err := os.Stat(localPath)
+		if err == nil {
+			println("===============downloaded============" + localPath)
+			d.playlist.Append(item.Name)
+			continue
+		}
+
 		for i := 0; i < 3; i++ {
 			if path, err := d.download(item); err == nil {
 				d.playlist.Append(path)
@@ -590,8 +613,8 @@ func (d *M3u8Downloader) autoDownload() {
 				}
 				break
 			}
-		}*/
-	//}
+		}
+	}
 }
 
 func (d *M3u8Downloader) autoRefreshList() {
@@ -604,25 +627,69 @@ func (d *M3u8Downloader) autoRefreshList() {
 		d.Lock()
 		n := len(d.items)
 		max := len(list)
-		if n < max {
-			sort.Sort(SortedListResult(list))
 
-			for i := n; i < max; i++ {
+		// sort.Sort(SortedListResult(list))
+		sort.Slice(list, func(i, j int) bool {
+			val_1, _ := strconv.Atoi(strings.ReplaceAll(strings.ReplaceAll(list[i].Name, "sync", ""), ".ts", ""))
+			val_2, _ := strconv.Atoi(strings.ReplaceAll(strings.ReplaceAll(list[j].Name, "sync", ""), ".ts", ""))
+			return val_1 < val_2
+		})
+
+		initId := n
+		if len(d.initSegment) > 0 {
+			println("=======initId " + d.initSegment)
+
+			initId = sort.Search(len(list), func(i int) bool {
+				return list[i].Name < d.initSegment
+			})
+
+			if n == max {
+				initId = n
+			}
+		}
+
+		println("=======initId")
+		println(initId)
+		println("=======initId len(d.items)")
+		println(n)
+		println("=======initId len(list)")
+		println(max)
+
+		//if n < max {
+		if initId < max {
+			// sort.Sort(SortedListResult(list))
+
+			//for i := n; i < max; i++ {
+			for i := initId; i < max; i++ {
 				item := MediaItem{
 					Name: list[i].Name,
 					Path: list[i].Path,
 				}
+
+				if len(d.items) > 0 {
+					found := sort.Search(len(d.items), func(i int) bool {
+						return d.items[i].Name == item.Name
+					})
+
+					if found == len(d.items) { // not found
+						println("=======initId ignoring as found in items:" + item.Name)
+						continue
+					}
+				}
+
 				d.items = append(d.items, item)
 				d.addToDownload(item)
+
+				println("===============addToDownload============")
+				println("===============addToDownload=" + list[i].Name)
 			}
 		}
 		d.Unlock()
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 }
 
-/*
 func (d *M3u8Downloader) download(item MediaItem) (string, error) {
 	wg := &sync.WaitGroup{}
 	statusBar := &StatusBarMocked{wg: wg}
@@ -639,12 +706,13 @@ func (d *M3u8Downloader) download(item MediaItem) (string, error) {
 		wg.Wait()
 	}
 
+	println("downloaded========= " + localPath)
 	if !statusBar.success {
 		return "", statusBar.err
 	}
 
 	return localPath, nil
-}*/
+}
 
 func (d *M3u8Downloader) getList() ([]*sdk.ListResult, error) {
 	//get list from remote allocations's path
@@ -669,6 +737,7 @@ func (d *M3u8Downloader) getList() ([]*sdk.ListResult, error) {
 }
 
 // SortedListResult sort files order by name
+/*
 type SortedListResult []*sdk.ListResult
 
 func (a SortedListResult) Len() int {
@@ -692,7 +761,7 @@ func (a SortedListResult) Less(i, j int) bool {
 
 func (a SortedListResult) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
-}
+}*/
 
 // MediaItem ts file
 type MediaItem struct {
@@ -709,9 +778,11 @@ type StatusBarMocked struct {
 func (s *StatusBarMocked) Started(allocationId, filePath string, op int, totalBytes int) {}
 
 func (s *StatusBarMocked) InProgress(allocationId, filePath string, op int, completedBytes int, data []byte) {
+	println("filePath=========InProgress")
 }
 
 func (s *StatusBarMocked) Error(allocationID string, filePath string, op int, err error) {
+	println("filePath=========Error")
 	s.success = false
 	s.err = err
 	s.wg.Done()

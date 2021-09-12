@@ -8,6 +8,7 @@ require (
 	github.com/deckarep/golang-set v1.7.1 // indirect
 	github.com/h2non/filetype v1.1.1 // indirect
 	github.com/herumi/bls v0.0.0-20210511012341-3f3850a6eac7
+	github.com/influxdata/influxdb v1.8.3
 	github.com/klauspost/cpuid/v2 v2.0.6 // indirect
 	github.com/klauspost/reedsolomon v1.9.12 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
@@ -18,6 +19,7 @@ require (
 	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
 	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
+	gotest.tools v2.2.0+incompatible
 )
 
 // temporary, for development
