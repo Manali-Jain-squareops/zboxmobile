@@ -34,8 +34,9 @@ func TestListSorting(t *testing.T) {
 	assert.Equal(t, initId, 4)
 
 	found := sort.Search(len(list), func(i int) bool {
-		return list[i].Name == "test11"
+		return list[i].Name == "test122"
 	})
 
 	assert.Equal(t, found, len(list))
+
 }

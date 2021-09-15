@@ -579,42 +579,13 @@ func (d *M3u8Downloader) Start() error {
 		d.status.Started(d.allocationID, d.localPath, 0, 0)
 	}
 
-	go d.autoDownload()
 	go d.autoRefreshList()
-	go d.playlist.Play()
+	go d.autoDownload()
+	go d.playlist.Play() // TODO call only if queue downloaded fully per transaction
 
 	err := <-d.done
 
 	return err
-}
-
-func (d *M3u8Downloader) addToDownload(item MediaItem) {
-	d.downloadQueue <- item
-}
-
-func (d *M3u8Downloader) autoDownload() {
-	for {
-		item := <-d.downloadQueue
-
-		// file already exists
-		localPath := d.localDir + string(os.PathSeparator) + item.Name
-		_, err := os.Stat(localPath)
-		if err == nil {
-			println("===============downloaded============" + localPath)
-			d.playlist.Append(item.Name)
-			continue
-		}
-
-		for i := 0; i < 3; i++ {
-			if path, err := d.download(item); err == nil {
-				d.playlist.Append(path)
-				if d.status != nil {
-					d.status.InProgress(d.allocationID, path, 1, len(d.items), nil)
-				}
-				break
-			}
-		}
-	}
 }
 
 func (d *M3u8Downloader) autoRefreshList() {
@@ -637,57 +608,76 @@ func (d *M3u8Downloader) autoRefreshList() {
 
 		initId := n
 		if len(d.initSegment) > 0 {
-			println("=======initId " + d.initSegment)
-
 			initId = sort.Search(len(list), func(i int) bool {
 				return list[i].Name < d.initSegment
 			})
 
-			if n == max {
+			if n == max || n > initId {
 				initId = n
 			}
 		}
 
-		println("=======initId")
-		println(initId)
-		println("=======initId len(d.items)")
-		println(n)
-		println("=======initId len(list)")
-		println(max)
-
-		//if n < max {
 		if initId < max {
 			// sort.Sort(SortedListResult(list))
 
-			//for i := n; i < max; i++ {
 			for i := initId; i < max; i++ {
 				item := MediaItem{
 					Name: list[i].Name,
 					Path: list[i].Path,
 				}
 
-				if len(d.items) > 0 {
-					found := sort.Search(len(d.items), func(i int) bool {
-						return d.items[i].Name == item.Name
-					})
+				/*
+					if len(d.items) > 0 {
+						found := sort.Search(len(d.items), func(i int) bool {
+							return d.items[i].Name == item.Name
+						})
 
-					if found == len(d.items) { // not found
-						println("=======initId ignoring as found in items:" + item.Name)
-						continue
-					}
-				}
+						if found == len(d.items) { // not found
+							println("=======initId ignoring as found in items:" + item.Name)
+							continue
+						}
+					}*/
+
+				println("===============addToDownload=" + list[i].Name)
 
 				d.items = append(d.items, item)
 				d.addToDownload(item)
-
-				println("===============addToDownload============")
-				println("===============addToDownload=" + list[i].Name)
 			}
 		}
 		d.Unlock()
 
 		time.Sleep(1 * time.Second)
 	}
+}
+
+func (d *M3u8Downloader) autoDownload() {
+	for {
+		item := <-d.downloadQueue
+
+		// file already exists
+		localPath := d.localDir + string(os.PathSeparator) + item.Name
+		_, err := os.Stat(localPath)
+		if err == nil {
+			println("===============downloaded============" + localPath)
+			d.playlist.Append(item.Name)
+			continue
+		}
+
+		for i := 0; i < 3; i++ {
+			if path, err := d.download(item); err == nil {
+				d.playlist.Append(path)
+				if d.status != nil {
+					println("===============downloaded============" + localPath)
+					d.status.InProgress(d.allocationID, path, 1, len(d.items), nil)
+				}
+				break
+			}
+		}
+	}
+}
+
+func (d *M3u8Downloader) addToDownload(item MediaItem) {
+	d.downloadQueue <- item
 }
 
 func (d *M3u8Downloader) download(item MediaItem) (string, error) {
@@ -699,6 +689,7 @@ func (d *M3u8Downloader) download(item MediaItem) (string, error) {
 	remotePath := item.Path
 
 	if len(d.remotePath) > 0 {
+		println("==========start downloading file========= " + localPath)
 		err := d.allocationObj.DownloadFile(localPath, remotePath, statusBar)
 		if err != nil {
 			return "", err
@@ -706,7 +697,6 @@ func (d *M3u8Downloader) download(item MediaItem) (string, error) {
 		wg.Wait()
 	}
 
-	println("downloaded========= " + localPath)
 	if !statusBar.success {
 		return "", statusBar.err
 	}
