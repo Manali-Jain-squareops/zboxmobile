@@ -102,7 +102,7 @@ func (a *Allocation) DownloadThumbnail(remotePath, localPath string, statusCb St
 }
 
 // UploadFile - start upload file thumbnail from localpath to remote path
-func (a *Allocation) UploadFile(localPath, remotePath, fileAttrs string, statusCb StatusCallback) error {
+func (a *Allocation) UploadFile(workdir, localPath, remotePath, fileAttrs string, statusCb StatusCallback) error {
 	var attrs fileref.Attributes
 	if len(fileAttrs) > 0 {
 		err := json.Unmarshal([]byte(fileAttrs), &attrs)
@@ -110,7 +110,8 @@ func (a *Allocation) UploadFile(localPath, remotePath, fileAttrs string, statusC
 			return fmt.Errorf("failed to convert fileAttrs. %v", err)
 		}
 	}
-	return a.sdkAllocation.UploadFile(localPath, remotePath, attrs, statusCb)
+
+	return a.sdkAllocation.StartChunkedUpload(workdir, localPath, remotePath, statusCb, false, "", false, attrs)
 }
 
 // RepairFile - repairing file if it's exist in remote path
