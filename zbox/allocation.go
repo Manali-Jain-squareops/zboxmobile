@@ -400,7 +400,30 @@ func (a *Allocation) GetFirstSegment(localPath, remotePath, tmpPath string, dela
 	return CreateStreamingService(a).GetFirstSegment(localPath, remotePath, tmpPath, delay, maxSegments)
 }
 
+func (a *Allocation) CreateDir(dirName string) error {
+	return a.sdkAllocation.CreateDir(dirName)
+}
+
+var currentPlayback StreamingImpl
+
 // GetMinStorageCost - getting back min cost for allocation
 func (a *Allocation) PlayStreaming(localPath, remotePath, authTicket, lookupHash, initSegment string, delay int, statusCb StatusCallback) error {
-	return CreateStreamingService(a).PlayStreaming(localPath, remotePath, authTicket, lookupHash, initSegment, delay, statusCb)
+	currentPlayback = CreateStreamingService(a)
+	return currentPlayback.PlayStreaming(localPath, remotePath, authTicket, lookupHash, initSegment, delay, statusCb)
+}
+
+func (a *Allocation) StopStreaming() error {
+	if currentPlayback == nil {
+		return fmt.Errorf("no active playback found")
+	}
+
+	return currentPlayback.Stop()
+}
+
+func (a *Allocation) GetCurrentManifest() string {
+	if currentPlayback == nil {
+		return ""
+	}
+
+	return currentPlayback.GetCurrentManifest()
 }

@@ -15,12 +15,15 @@ import (
 //StreamingService - holder for streaming service
 type StreamingService struct {
 	allocation *Allocation
+	downloader *M3u8Downloader
 }
 
 //StreamingService - implementation of streaming service
 type StreamingImpl interface {
 	GetFirstSegment(localPath, remotePath, tmpPath string, delay, maxSegments int) (string, error)
 	PlayStreaming(localPath, remotePath, authTicket, lookupHash, initSegment string, delay int, statusCb StatusCallback) error
+	Stop() error
+	GetCurrentManifest() string
 }
 
 //CreateStreamingService - creating streaming service instance
@@ -117,14 +120,24 @@ func (s *StreamingService) PlayStreaming(localPath, remotePath, authTicket, look
 	}
 
 	downloader.status = statusCb
-	go downloader.Start()
+	s.downloader = downloader
+
+	go downloader.start()
 	return nil
+}
+
+// TODO
+func (s *StreamingService) Stop() error {
+	return nil
+}
+
+func (s *StreamingService) GetCurrentManifest() string {
+	return string(s.downloader.playlist.Encode())
 }
 
 // M3u8Downloader download files from blobber's dir, and build them into a local m3u8 playlist
 type M3u8Downloader struct {
 	sync.RWMutex
-	delay int
 
 	localDir     string
 	localPath    string
@@ -213,7 +226,7 @@ func createM3u8Downloader(localPath, remotePath, authTicket, allocationID, looku
 }
 
 // Start start to download ,and build playlist
-func (d *M3u8Downloader) Start() error {
+func (d *M3u8Downloader) start() error {
 	if d.status != nil {
 		d.status.Started(d.allocationID, d.localPath, 0, 0)
 	}
